@@ -21,7 +21,6 @@ library
    ,directory
    ,filepath
    ,process
-   ,random
    ,SHA2
    ,hashable
    ,unix-compat
@@ -34,6 +33,7 @@ executable trahs
   build-depends:
     base < 5
    ,trahs
+   ,random
    ,directory
   
 test-suite test-trahs

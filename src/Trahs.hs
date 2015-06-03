@@ -1,4 +1,4 @@
-module Trahs (trahs, initDB) where
+module Trahs (trahs, TraDB (..), initDB) where
 
 import System.Environment
 import System.Directory
@@ -17,7 +17,7 @@ trahs db1 (files1,dir1) db2 (files2,dir2) = forM_ files1 $ \file -> do
   -- stage 1: checks for any modifications to files in directories 1 and 2
   newdb1 <- checkForMods db1 files1 dir1
   newdb2 <- checkForMods db2 files2 dir2
-  -- stage 2: now, sync directories 1 and 2
+  -- stage 2: now, perform the unidirectional sync from dir1 to dir2.
   
   -- finally, write the databases to the target folders
   
@@ -68,7 +68,7 @@ data TraDB = TraDB {lvn :: Integer,
   deriving(Eq,Read,Show)
   
 initDB :: String -> [String] -> TraDB
-initDB newID files = TraDB {lvn = 1,
+initDB newID files = TraDB {lvn = 0,
                 replicaID = newID,
-                fileData = M.empty}-- the fileData most certainly needs to change. 
+                fileData = M.empty}-- this is fine as is, since checkForMods will update appropriately.
                 

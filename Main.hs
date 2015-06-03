@@ -3,6 +3,7 @@ module Main where
 import System.Environment
 import System.Directory
 import Control.Monad
+import System.Random
 
 import Trahs
 
@@ -16,29 +17,32 @@ main = do
 -- If one doesn't exist, initialize it.
   (tradb1,files1) <- readTraDB dir1
   (tradb2,files2) <- readTraDB dir2
-  trahs (read tradb1) (files1,dir1) (read tradb2) (files2,dir2)
+  trahs (tradb1 {lvn = lvn tradb1 + 1}) (files1,dir1) (tradb2 {lvn = lvn tradb2 + 1}) (files2,dir2)
     
 
 -- Now perform trahs.
--- readTraDB :: String -> IO (String,String)
+readTraDB :: String -> IO (TraDB,[String])
 readTraDB dir = do
   dirContents <- getDirectoryContents dir
   unless (elem ".trahs.db" dirContents) (createNewTRADB dir dirContents)
-  tradb <- readFile (dir ++ ".trahs.db")
+  tradb <- readFile (dir ++ "/.trahs.db")
   let dirContents' = removeJunk dirContents
-  return (tradb,dirContents')
+  return (read tradb,dirContents')
   
 -- | createNewTRADB: instantiates a .trahs.db file at a given directory 
 -- if none exists yet.
 -- TODO: finish writing this
 createNewTRADB dir dirContents = do
-  uid <- genUID
+  uid <- genUID dir
   writeFile (dir ++ ".trahs.db") $ show $ initDB uid (removeJunk dirContents)
-       
+
+-- this is just so we don't try to sync ., .., or .trahs.db.
 removeJunk :: [FilePath] -> [FilePath]
 removeJunk = filter (\x -> x /= "." && x /= ".." && x /= ".trahs.db")
 
--- needs to change
-genUID :: IO String
-genUID = return ""
+-- pro tem, uids are going to simply be the given directory.
+-- This should probably change.
+genUID :: String -> IO String
+genUID dir = do
+  return dir
 
