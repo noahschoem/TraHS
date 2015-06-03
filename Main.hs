@@ -22,7 +22,7 @@ main = do
 -- readTraDB :: String -> IO (String,String)
 readTraDB dir = do
   dirContents <- getDirectoryContents dir
-  when (not (elem ".trahs.db" dirContents)) (createNewTRADB dir)
+  unless (elem ".trahs.db" dirContents) (createNewTRADB dir)
   tradb <- readFile (dir ++ ".trahs.db")
   let dirContents' =  filter (\x -> x /= "." && x /= ".." && x /= ".trahs.db") dirContents
   return (tradb,dirContents')
