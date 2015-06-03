@@ -33,12 +33,7 @@ readTraDB dir = do
 -- TODO: finish writing this
 createNewTRADB dir dirContents = do
   uid <- genUID
-  let fileList = removeJunk dirContents
-  let fileMap = 
-  let newdb = TraDB {lvn = 1,
-                     replicaID = uid,
-                     fileData = []} -- this needs to change
-  writeFile (dir ++ ".trahs.db") $ show newdb
+  writeFile (dir ++ ".trahs.db") $ show $ initDB uid (removeJunk dirContents)
        
 removeJunk :: [FilePath] -> [FilePath]
 removeJunk = filter (\x -> x /= "." && x /= ".." && x /= ".trahs.db")

@@ -23,6 +23,7 @@ library
    ,process
    ,random
    ,SHA2
+   ,hashable
    ,unix-compat
   
   default-language: Haskell2010
