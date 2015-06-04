@@ -13,12 +13,27 @@ import Data.ByteString.Char8 (pack)
 --   Gets passed in arguments for the database info
 --   and file list for dir1 and dir2.
 trahs :: TraDB -> ([String],String) -> TraDB -> ([String],String) -> IO ()
-trahs db1 (files1,dir1) db2 (files2,dir2) = forM_ files1 $ \file -> do
-  -- stage 1: checks for any modifications to files in directories 1 and 2
+trahs db1 (files1,dir1) db2 (files2,dir2) = do
+  -- first, check for any modifications to files in directories 1 and 2
   newdb1 <- checkForMods db1 files1 dir1
   newdb2 <- checkForMods db2 files2 dir2
-  -- stage 2: now, perform the unidirectional sync from dir1 to dir2.
-  
+  -- then perform the unidirectional sync from dir1 to dir2.
+  forM_ (union files1 files2) $\file -> do 
+    case (M.lookup file (fileData newdb1),M.lookup file (fileData newdb2)) of
+         -- source and target both have records of the file
+         (Just fd1,Just fd2) -> if (((replicaID newdb1) M.! (versionVector fd1) )
+                                   > findWithDefault 0 (replicaID newdb1) (versionVector fd2))
+                                   then do
+                                     copyFile (dir1 ++ file) (dir2 ++ file)
+                                     return ()
+         (Just fd1, Nothing) -> 
+         
+         _ -> return ()
+         -- if the file does not exist in dir2, create it.
+         () -> copyFile (dir1 ++ file) (dir2 ++ file)
+         -- otherwise, we have some work to do.
+         Just rv2 -> do
+           
   -- finally, write the databases to the target folders
   
   return ()
@@ -39,11 +54,11 @@ trahs db1 (files1,dir1) db2 (files2,dir2) = forM_ files1 $ \file -> do
         oldFileData = fileData db
         checkForMod (file,fileHash) = case (M.lookup file oldFileData) of
           Nothing -> (file, FileData {lastHash = fileHash, 
-                              versionVector = M.singleton file (lvn db)})
+                              versionVector = M.singleton (replicaID db) (lvn db)})
           Just (FileData h vv) -> case (h == fileHash) of
                True -> (file,FileData h vv)
                False-> (file,FileData {lastHash = fileHash,
-                                 versionVector = M.insert file (lvn db) vv})
+                                 versionVector = M.insert (replicaID db) (lvn db) vv})
     
     -- Otherwise, update that file's version vector and last hash.
       
@@ -71,4 +86,3 @@ initDB :: String -> [String] -> TraDB
 initDB newID files = TraDB {lvn = 0,
                 replicaID = newID,
                 fileData = M.empty}-- this is fine as is, since checkForMods will update appropriately.
-                

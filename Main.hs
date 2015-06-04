@@ -40,9 +40,8 @@ createNewTRADB dir dirContents = do
 removeJunk :: [FilePath] -> [FilePath]
 removeJunk = filter (\x -> x /= "." && x /= ".." && x /= ".trahs.db")
 
--- pro tem, uids are going to simply be the given directory.
--- This should probably change.
+-- right now, uids are gotten from the standard random number generator.
 genUID :: String -> IO String
-genUID dir = do
-  return dir
-
+genUID = do
+  g <- getStdGen
+  return $ show $ fst $ next g
